@@ -391,6 +391,19 @@
     overflow-y:auto;
   }
   #queenPage.open{display:flex;}
+  #timerPage{
+    position:fixed;inset:0;
+    background:
+      radial-gradient(900px 600px at 50% 0%, rgba(110,13,37,0.35), transparent 60%),
+      linear-gradient(180deg, #0c0a09 0%, #1a1210 55%, #0c0a09 100%);
+    color:var(--ivory-2);
+    z-index:200;
+    display:none;
+    align-items:center;justify-content:center;
+    padding:30px;
+    overflow-y:auto;
+  }
+  #timerPage.open{display:flex;}
   .queen-inner{
     max-width:640px;
     width:100%;
@@ -514,18 +527,18 @@
     <section class="feed">
 
       <article class="story lead">
-        <span class="kicker">Breaking · Constance Billard</span>
-        <div class="thumb" data-caption="a night to remember"></div>
-        <h2>Compelled or just complicated? A certain doppelgänger was seen leaving the Palace at 2 a.m. with someone who definitely wasn't her boyfriend.</h2>
-        <p>Sources say the necklace never came off — vervain, apparently, is very in this season. Whether it kept the compulsion out or just the truth in is anyone's guess. One thing's certain: nobody in this town stays dead, and nobody stays loyal for long either.</p>
-        <span class="byline">Filed from the Upper East Side, with a detour through Mystic Falls</span>
+        <span class="kicker">Breaking · Quiz Bowl Fallout</span>
+        <div class="thumb" data-caption="second place isn't a look"></div>
+        <h2>Sore loser of the season goes to... a certain S., who apparently didn't love watching someone who couldn't even clear qualifiers walk off with the trophy anyway.</h2>
+        <p>Word around the buzzer table is Swarit has not stopped talking about it — not because Aashman won, but because Aashman wasn't even supposed to be in the room. Funny how the ones who scream "rigged" the loudest are usually just bad at losing quietly. Grace under pressure, gentlemen. Look into it.</p>
+        <span class="byline">Filed from the quiz circuit, where egos bruise easier than trophies</span>
       </article>
 
       <article class="story">
-        <span class="kicker">Scandal</span>
-        <h2>Founder's Day meets Fashion's Night Out <span class="spot-icon" data-spot="1" tabindex="0" aria-label="ornament">✦</span></h2>
-        <p>Two boarding-house brothers crashed the gala in matching daylight rings, and one blonde vampire-slash-cheer-captain reorganized the entire seating chart within four minutes of arriving. A blast went out before dessert was even served.</p>
-        <span class="byline">Eyes everywhere. Always.</span>
+        <span class="kicker">Scandal · Exclusive</span>
+        <h2>Breaking: a certain A. may have leaked more than just his composure <span class="spot-icon" data-spot="1" tabindex="0" aria-label="ornament">✦</span></h2>
+        <p>Sources close to the exam hall confirm that a paper made its way into hands it was never meant to touch — and this scandal didn't stay in the hallway whispers where it started. It's climbed all the way to the principal's desk, and Monday's little sit-down is not the kind of meeting you walk out of with your reputation intact. Grades can be curved. This story won't be.</p>
+        <span class="byline">You know you love a scandal with a paper trail.</span>
       </article>
 
       <div class="ornament-divider"><span class="spot-icon" data-spot="2" tabindex="0" aria-label="ornament">❧</span></div>
@@ -543,8 +556,8 @@
     <aside class="sidebar">
       <div class="widget">
         <h3>Spotted <span class="spot-icon" data-spot="3" tabindex="0" aria-label="ornament">☾</span></h3>
-        <div class="spotted-item"><span>🥂</span><span><b>B.</b> and a boarding-house brother, arguing about strategy like it's a game of chess and not a friendship.</span></div>
-        <div class="spotted-item"><span>🕯️</span><span><b>C.</b> buying out the entire top floor of a bar that definitely doesn't card.</span></div>
+        <div class="spotted-item"><span>📝</span><span>A certain quiz champion, keeping suspiciously quiet while a certain runner-up won't let it go.</span></div>
+        <div class="spotted-item"><span>🗂️</span><span>A folder that should never have left the exam hall. The principal's office already has questions.</span></div>
         <div class="spotted-item"><span>🌘</span><span>A raven on the fire escape. Again. Third night this week.</span></div>
       </div>
 
@@ -556,6 +569,13 @@
       <div class="widget hunt-widget">
         <h3>The Daily Secret</h3>
         <p>One mark on this page means something today. The rest are just ornaments. Click around — the town keeps its secrets close, and so do I.</p>
+      </div>
+
+      <div class="widget">
+        <h3>Anonymous Tip Line</h3>
+        <p style="font-size:13.5px;color:var(--charcoal);line-height:1.6;margin:0 0 10px;">Got something to say? This line is always open.</p>
+        <input type="text" id="tipInput" placeholder="type here..." autocomplete="off"
+          style="width:100%;font-family:'EB Garamond',serif;font-size:15px;padding:9px 11px;border:1px solid var(--line);background:#fff;color:var(--ink);">
       </div>
     </aside>
   </main>
@@ -624,6 +644,26 @@
   </div>
 </div>
 
+<div id="timerPage">
+  <div class="queen-inner">
+    <p class="queen-eyebrow">the tip line has spoken</p>
+    <h1 class="queen-title" style="font-size:clamp(26px,5vw,42px);">We're Back</h1>
+    <p class="queen-subtitle">and the clock is running</p>
+    <p class="queen-note" id="timerNote">Started counting the moment those two words showed up. It doesn't stop on its own — someone has to choose to reset it.</p>
+    <div class="queen-countdown" id="timerCountdown">
+      <div class="queen-unit"><span class="num" id="tDays">--</span><span class="lab">days</span></div>
+      <div class="queen-unit"><span class="num" id="tHours">--</span><span class="lab">hours</span></div>
+      <div class="queen-unit"><span class="num" id="tMins">--</span><span class="lab">min</span></div>
+      <div class="queen-unit"><span class="num" id="tSecs">--</span><span class="lab">sec</span></div>
+    </div>
+    <p class="queen-date" id="timerStartedLabel">running since ...</p>
+    <div class="row" style="display:flex;gap:10px;justify-content:center;">
+      <button class="queen-close" id="timerResetBtn">Reset Timer</button>
+      <button class="queen-close" id="timerCloseBtn">Back to the blog</button>
+    </div>
+  </div>
+</div>
+
 <script type="module">
 /* ============================================================
    STORAGE LAYER
@@ -673,6 +713,7 @@ if (FIREBASE_ENABLED) {
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
   const secretsRef = doc(db, "gossipGirlSite", "secrets");
+  const timerRef = doc(db, "gossipGirlSite", "timer");
 
   Store = {
     mode: 'firebase',
@@ -682,6 +723,16 @@ if (FIREBASE_ENABLED) {
     },
     async setSecrets(list){
       await setDoc(secretsRef, { list, updatedAt: Date.now() });
+    },
+    async getTimerStart(){
+      const snap = await getDoc(timerRef);
+      return snap.exists() ? snap.data().startedAt : null;
+    },
+    async setTimerStart(ts){
+      await setDoc(timerRef, { startedAt: ts });
+    },
+    async clearTimer(){
+      await setDoc(timerRef, { startedAt: null });
     }
   };
 } else {
@@ -693,6 +744,16 @@ if (FIREBASE_ENABLED) {
     },
     async setSecrets(list){
       localStorage.setItem('gg_secrets_v1', JSON.stringify(list));
+    },
+    async getTimerStart(){
+      const raw = localStorage.getItem('gg_timer_start');
+      return raw ? Number(raw) : null;
+    },
+    async setTimerStart(ts){
+      localStorage.setItem('gg_timer_start', String(ts));
+    },
+    async clearTimer(){
+      localStorage.removeItem('gg_timer_start');
     }
   };
 }
@@ -1001,6 +1062,107 @@ XOXO, Gossip Girl.`,
       openQueenPage();
     }
   });
+
+  // ---------- "we're back" timer ----------
+  const timerPage = document.getElementById('timerPage');
+  const timerStartedLabel = document.getElementById('timerStartedLabel');
+  let timerInterval = null;
+  let timerStartedAt = null;
+
+  function normalizeTip(s){
+    return s.toLowerCase().replace(/[’']/g, "'").replace(/\s+/g,' ').trim();
+  }
+
+  const tipInput = document.getElementById('tipInput');
+  if(tipInput){
+    tipInput.addEventListener('keydown', async (e)=>{
+      if(e.key !== 'Enter') return;
+      const val = normalizeTip(tipInput.value);
+      if(val === "we're back" || val === "were back"){
+        tipInput.value = '';
+        tipInput.blur();
+        await ensureTimerRunning();
+        openTimerPage();
+      }
+    });
+  }
+
+  async function ensureTimerRunning(){
+    try{
+      let start = await Store.getTimerStart();
+      if(!start){
+        start = Date.now();
+        await Store.setTimerStart(start);
+      }
+      timerStartedAt = start;
+    }catch(e){
+      console.error('timer storage error', e);
+      timerStartedAt = timerStartedAt || Date.now();
+    }
+  }
+
+  function formatStartedLabel(ts){
+    const d = new Date(ts);
+    return 'running since ' + d.toLocaleString(undefined, { dateStyle:'medium', timeStyle:'short' });
+  }
+
+  async function openTimerPage(){
+    if(!timerStartedAt){
+      await ensureTimerRunning();
+    }
+    timerStartedLabel.textContent = formatStartedLabel(timerStartedAt);
+    timerPage.classList.add('open');
+    tickTimer();
+    timerInterval = setInterval(tickTimer, 1000);
+    document.addEventListener('keydown', timerEscHandler);
+  }
+  function closeTimerPage(){
+    timerPage.classList.remove('open');
+    clearInterval(timerInterval);
+    document.removeEventListener('keydown', timerEscHandler);
+  }
+  function timerEscHandler(e){
+    if(e.key === 'Escape') closeTimerPage();
+  }
+  function tickTimer(){
+    if(!timerStartedAt) return;
+    let diff = Date.now() - timerStartedAt;
+    if(diff < 0) diff = 0;
+    const days = Math.floor(diff / (1000*60*60*24));
+    diff -= days*(1000*60*60*24);
+    const hours = Math.floor(diff / (1000*60*60));
+    diff -= hours*(1000*60*60);
+    const mins = Math.floor(diff / (1000*60));
+    diff -= mins*(1000*60);
+    const secs = Math.floor(diff / 1000);
+    document.getElementById('tDays').textContent = days;
+    document.getElementById('tHours').textContent = pad(hours);
+    document.getElementById('tMins').textContent = pad(mins);
+    document.getElementById('tSecs').textContent = pad(secs);
+  }
+  document.getElementById('timerCloseBtn').addEventListener('click', closeTimerPage);
+  document.getElementById('timerResetBtn').addEventListener('click', async ()=>{
+    const confirmed = confirm('Reset the timer? This starts the count over from zero.');
+    if(!confirmed) return;
+    const now = Date.now();
+    try{
+      await Store.setTimerStart(now);
+    }catch(e){
+      console.error('timer reset error', e);
+    }
+    timerStartedAt = now;
+    timerStartedLabel.textContent = formatStartedLabel(timerStartedAt);
+    tickTimer();
+    toast('Timer reset. Starting from zero.');
+  });
+
+  // if a timer is already running (from a previous "we're back"), pick it up silently
+  (async ()=>{
+    try{
+      const existing = await Store.getTimerStart();
+      if(existing) timerStartedAt = existing;
+    }catch(e){}
+  })();
 })();
 </script>
 
