@@ -310,6 +310,17 @@
     font-size:15px;
     margin-bottom:20px;
   }
+  .modal.modal-long{max-width:600px;}
+  .modal.modal-long .modal-body{
+    font-style:normal;
+    text-align:left;
+    font-size:16.5px;
+    line-height:1.75;
+    white-space:pre-wrap;
+    max-height:56vh;
+    overflow-y:auto;
+    padding-right:6px;
+  }
   .modal-close{
     display:block;margin:0 auto;
     font-family:'Inter',sans-serif;
@@ -590,7 +601,7 @@
         <button class="ghost" id="adminCancelBtn2">Close</button>
       </div>
       <div class="secret-list" id="secretList"></div>
-      <p class="admin-note">Secrets rotate automatically — one per day, hidden behind a different mark each time, the same for everyone who opens this page. Tap the wordmark five times to get back in here.</p>
+      <p class="admin-note" id="storageModeNote">Secrets rotate automatically — one per day, hidden behind a different mark each time, the same for everyone who opens this page. Tap the wordmark five times to get back in here.</p>
     </div>
   </div>
 </div>
@@ -613,14 +624,106 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+/* ============================================================
+   STORAGE LAYER
+   This site works two ways:
+
+   1) LOCAL MODE (default, zero setup) — secrets are saved with
+      localStorage. They persist on one browser/device only.
+      Fine for testing, or if only you will ever use this site.
+
+   2) FIREBASE MODE (shared across every device) — fill in the
+      firebaseConfig object below with your own free Firebase
+      project's config, and secrets sync everywhere automatically.
+      Steps:
+        a. Go to https://console.firebase.google.com → Add project
+        b. Build > Firestore Database > Create database (test mode)
+        c. Project settings (gear icon) > General > "Your apps" >
+           Web app (</>) > copy the firebaseConfig object > paste below
+        d. In Firestore rules, something like this is enough for a
+           small personal site (not bulletproof security, but the
+           config itself is not a secret key — Firestore rules are
+           what actually protect the data):
+
+           rules_version = '2';
+           service cloud.firestore {
+             match /databases/{database}/documents {
+               match /gossipGirlSite/{doc} {
+                 allow read, write: if true;
+               }
+             }
+           }
+   ============================================================ */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+
+const FIREBASE_ENABLED = firebaseConfig.apiKey !== "YOUR_API_KEY";
+let Store;
+
+if (FIREBASE_ENABLED) {
+  const { initializeApp } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js");
+  const { getFirestore, doc, getDoc, setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const secretsRef = doc(db, "gossipGirlSite", "secrets");
+
+  Store = {
+    mode: 'firebase',
+    async getSecrets(){
+      const snap = await getDoc(secretsRef);
+      return snap.exists() ? snap.data().list : null;
+    },
+    async setSecrets(list){
+      await setDoc(secretsRef, { list, updatedAt: Date.now() });
+    }
+  };
+} else {
+  Store = {
+    mode: 'local',
+    async getSecrets(){
+      const raw = localStorage.getItem('gg_secrets_v1');
+      return raw ? JSON.parse(raw) : null;
+    },
+    async setSecrets(list){
+      localStorage.setItem('gg_secrets_v1', JSON.stringify(list));
+    }
+  };
+}
+
 (function(){
-  const STORAGE_KEY = 'secrets:list';
   const SEEN_PREFIX = 'gg_seen_';
   const ADMIN_PASSWORD = 'vervain';
   const SPOT_COUNT = 8;
 
   const DEFAULT_SECRETS = [
+    `Spotted: MY Queen Bee.
+
+Funny how the city keeps changing, yet some people remain the only headline worth reading.
+
+The Upper East Side loves a comeback. They just never happen on schedule.
+
+Whispers say someone has been trading impulse for patience, noise for silence, and promises for proof. They say he's finally learning that the right woman isn't impressed by grand gestures—only consistent ones.
+
+As for MY Queen Bee... she was never looking for someone to keep up. She was waiting for someone to grow into the man who could stand beside her.
+
+But then again, timing has always been the rarest luxury in Kanpur.
+
+Some stories don't end after the third act. They simply wait until both characters know their lines.
+
+And if, one day, three words and eight letters happen to find their way back into the conversation... don't act surprised. The best secrets were never really secrets.
+
+Until then, the city's favorite mystery remains unsolved.
+
+You know you love me.
+
+XOXO, Gossip Girl.`,
     "Every hunt needs a first clue. This one's it — the rest are yours to add.",
     "Mystic Falls has a body count. The Upper East Side has a reputation. Both are lying about the real number.",
     "Nobody ever really leaves this town, or this zip code. They just change their hair."
@@ -668,25 +771,33 @@
 
   async function loadSecrets(){
     try{
-      const res = await window.storage.get(STORAGE_KEY, true);
-      if(res && res.value){
-        secrets = JSON.parse(res.value);
+      const list = await Store.getSecrets();
+      if(list && list.length){
+        secrets = list;
       } else {
         secrets = DEFAULT_SECRETS.map((t,i)=>({id:'seed'+i, text:t}));
-        await window.storage.set(STORAGE_KEY, JSON.stringify(secrets), true);
+        await Store.setSecrets(secrets);
       }
     }catch(e){
+      console.error('storage load error', e);
       secrets = DEFAULT_SECRETS.map((t,i)=>({id:'seed'+i, text:t}));
     }
     setupHunt();
     renderAdminList();
+    const modeNote = document.getElementById('storageModeNote');
+    if(modeNote){
+      modeNote.textContent = (Store.mode === 'firebase')
+        ? 'Synced via Firebase — secrets update on every device automatically. ' + modeNote.textContent
+        : 'Local mode — secrets are saved to this browser only, not synced across devices yet. ' + modeNote.textContent;
+    }
   }
 
   async function saveSecrets(){
     try{
-      await window.storage.set(STORAGE_KEY, JSON.stringify(secrets), true);
+      await Store.setSecrets(secrets);
     }catch(e){
-      console.error('storage error', e);
+      console.error('storage save error', e);
+      toast('Could not save — check your Firebase setup.', 3200);
     }
   }
 
@@ -735,8 +846,10 @@
   // reveal modal
   const revealOverlay = document.getElementById('revealOverlay');
   const revealBody = document.getElementById('revealBody');
+  const revealModalEl = revealOverlay.querySelector('.modal');
   function openReveal(text){
     revealBody.textContent = text;
+    revealModalEl.classList.toggle('modal-long', text.length > 200);
     revealOverlay.classList.add('open');
   }
   document.getElementById('revealClose').addEventListener('click', ()=>revealOverlay.classList.remove('open'));
